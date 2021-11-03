@@ -29,8 +29,10 @@ class Rocket(Body):
 
     def __init__(self, x, y, wx, wy, ux, uy, mr, mo, dm):
         
-        super().__init__(x, y, 10, 100)
+        super().__init__(0, 0, 10, 100)
         
+        self.x = x
+        self.y = y
         self.mr = mr
         self.mo = mo
         self.wx = wx
@@ -51,8 +53,7 @@ class Rocket(Body):
                     self.vx += -((self.dm * self.wx) / self.M) * MODEL_DT
                     self.vy += -((self.dm * self.wy) / self.M) * MODEL_DT
             else:
-                    self.vy -= MODEL_DT * MODEL_G
-
+                    self.vy -= MODEL_DT * MODEL_G                
 b = Body(0, 0, 10, 100)
 r = Rocket(0, 0, 10, 10, 5, 5, 14, 15, -3)
 
