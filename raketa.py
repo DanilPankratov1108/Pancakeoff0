@@ -12,7 +12,7 @@ class Body:
         self.y = y
         self.vx = vx
         self.vy = vy
-        
+
         self.trajectory_x = []
         self.trajectory_y = []
 
@@ -24,16 +24,13 @@ class Body:
         self.x += self.vx * MODEL_DT
         self.y += self.vy * MODEL_DT - (MODEL_G * MODEL_DT**2) / 2
         self.vy -= MODEL_G * MODEL_DT
-       
-        
+
 class Rocket(Body):
 
     def __init__(self, x, y, wx, wy, ux, uy, mr, mo, dm):
         
-        super().__init__(0, 0, 10, 100)
+        super().__init__(x, y, 10, 100)
         
-        self.x = x
-        self.y = y
         self.mr = mr
         self.mo = mo
         self.wx = wx
@@ -49,12 +46,13 @@ class Rocket(Body):
         self.wy = self.vy - self.uy
         if self.dm < 0 and self.mo > 0:
             self.M += self.dm * MODEL_DT
-            self.mo += self.dm * MODEL_DT    
+            self.mo += self.dm * MODEL_DT
             if MODEL_DT * MODEL_G <= -((self.wy * self.dm) / (self.M)) * MODEL_DT:
                     self.vx += -((self.dm * self.wx) / self.M) * MODEL_DT
                     self.vy += -((self.dm * self.wy) / self.M) * MODEL_DT
             else:
-                    self.vy -= MODEL_DT * MODEL_G                       
+                    self.vy -= MODEL_DT * MODEL_G
+
 b = Body(0, 0, 10, 100)
 r = Rocket(0, 0, 10, 10, 5, 5, 14, 15, -3)
 
