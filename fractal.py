@@ -12,10 +12,7 @@ def draw_tree(size):
         tl.left(30)
         tl.penup()
         tl.backward(size)
-        tl.pendown()
-    else:
-        tl.pensize(3)
-        tl.dot       
+        tl.pendown()    
 
 size = 200
 
