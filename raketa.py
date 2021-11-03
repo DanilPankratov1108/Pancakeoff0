@@ -56,7 +56,7 @@ class Rocket(Body):
             else:
                     self.vy -= MODEL_DT * MODEL_G                       
 b = Body(0, 0, 10, 100)
-r = Rocket(0, 0, 10, 10, 5, 5, 14, 15, -3) 
+r = Rocket(0, 0, 10, 10, 5, 5, 14, 15, -3)
 
 bodies = [b, r]
 
