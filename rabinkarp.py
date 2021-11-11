@@ -5,20 +5,28 @@ def rabin_karp(text, pattern):
 
     m = len(text)
     n = len(pattern)
-    hs = hash(pattern)
+    hs = 0
+    hh = 0
+    
     if m == 0:
         return []
     if n == 0:
         return list(range(m - n))
-
+    for q in range(n):
+        hs = hs+id(pattern[q])
+        hh = hh+id(text[q])
     result = []
 
-    for b in range(m - n + 1):
+    for b in range(m - n):
         t = text[b:b+n]
-        if hash(t) == hs:
+        if hh == hs:
             if t == pattern:
                 result.append(b)
-              
+        hh += -id(text[b]) + id(text[b+n])
+    t = text[b+1:b+n+1]
+    if hh == hs:
+        if t == pattern:
+            result.append(b+1)         
     return result
 
 class RabinKarpTest(unittest.TestCase):
