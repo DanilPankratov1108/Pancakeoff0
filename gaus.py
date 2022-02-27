@@ -1,6 +1,8 @@
 
 import numpy as np
 from numpy import array
+from numpy.linalg import norm
+from numpy.linalg import solve as solve_out_of_the_box
 
 def gauss(a, b):
     a = a.copy()
@@ -36,3 +38,10 @@ b = array([5, 6, 7, 8], dtype=float)
 
 x = gauss(a,b)
 print(a*x)
+
+oob_solution = solve_out_of_the_box(a, b)
+solution = gauss(a, b)
+
+print(solution)
+print("Макс отклонение компоненты решения:", norm(solution-oob_solution, ord=1))
+
