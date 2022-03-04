@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def gauss(a, b):
     a = a.copy()
     b = b.copy()
@@ -22,6 +21,4 @@ def gauss(a, b):
             c = a[j][i]
             a[j] -= a[i] * c
             b[j] -= b[i] * c
-
-   
     return b
