@@ -5,9 +5,7 @@ import numpy as np
 from numpy.linalg import norm
 from numpy.linalg import solve as solve_out_of_the_box
 
-
 N = rand.randint(1 , 100)
-
 
 a = np.array([[float(rand.randint(-20, 20))
              for i in range(N)]for j in range(N)])
