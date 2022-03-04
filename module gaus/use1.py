@@ -1,3 +1,4 @@
+
 from gaus import gauss
 import random as rand
 import numpy as np
