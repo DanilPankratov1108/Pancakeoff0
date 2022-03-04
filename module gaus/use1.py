@@ -13,8 +13,6 @@ a = np.array([[float(rand.randint(-20, 20))
 
 b = np.array([float(rand.randint(-20, 20)) for i in range(N)])
 
-gauss(a, b)
-
 oob_solution = solve_out_of_the_box(a, b)
 solution = gauss(a, b)
 
