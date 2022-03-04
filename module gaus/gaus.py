@@ -23,5 +23,5 @@ def gauss(a, b):
             a[j] -= a[i] * c
             b[j] -= b[i] * c
 
-    print( b)
+   
     return b
