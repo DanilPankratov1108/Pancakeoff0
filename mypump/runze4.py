@@ -14,11 +14,6 @@ logging.basicConfig(level=logging.INFO, filename="runze_log.log", filemode="w",
 
 """Исключения"""
 
-class ComException(Exception):
-    def __init__(self):
-        message = "Required COM was not found"
-        super().__init__(message)
-
 class Termination(Exception):
     def __init__(self):
         message = "Terminating with /1TR command"
@@ -34,15 +29,15 @@ parity = PARITY_NONE
 
 """Подключение и выбор порта"""
 
+ports = list(serial.tools.list_ports.comports())
+target_manufacturer = 'wch.cn'
+target_pid = '29987'
+com_port = None
+for port in ports:
+    if target_manufacturer in port.manufacturer:
+        com_port = port.device
+
 try:
-    ports = list(serial.tools.list_ports.comports())
-    #port = next((p.device for p in ports), None)
-    target_manufacturer = 'wch.cn'
-    target_pid = '29987'
-    com_port = None
-    for port in ports:
-        if target_manufacturer in port.manufacturer:
-            com_port = port.device
             ser = serial.Serial(com_port,
                         baudrate=baudrate,
                         timeout=1,
@@ -50,8 +45,6 @@ try:
                         parity=parity,
                         bytesize=bytesize
                         )
-        else:
-            raise ComException
 
 except ValueError as ve:
     print("Error:", str(ve))
