@@ -31,11 +31,16 @@ parity = PARITY_NONE
 
 ports = list(serial.tools.list_ports.comports())
 target_manufacturer = 'wch.cn'
-target_pid = '29987'
+target_pid = 29987
+target_vid = 6790
 com_port = None
 for port in ports:
-    if target_manufacturer in port.manufacturer:
+    if port.pid == target_pid:
         com_port = port.device
+    else:
+        raise ValueError('No required Com port found')
+    if port is None:
+        raise ValueError('No COM port found')
 
 try:
             ser = serial.Serial(com_port,
