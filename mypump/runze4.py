@@ -5,13 +5,24 @@ import serial
 from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 import serial.tools.list_ports
 import logging
-import keyboard
-import msvcrt
+import keyboard as kb
 
 """Логирование"""
 
-logging.basicConfig(level=logging.INFO, filename="runze_log.log",filemode="w",
+logging.basicConfig(level=logging.INFO, filename="runze_log.log", filemode="w",
                     format="%(asctime)s %(levelname)s %(message)s")
+
+"""Исключения"""
+
+class ComException(Exception):
+    def __init__(self):
+        message = "Required COM was not found"
+        super().__init__(message)
+
+class Termination(Exception):
+    def __init__(self):
+        message = "Terminating with /1TR command"
+        super().__init__(message)
 
 """Настройки порта"""
 
@@ -21,23 +32,30 @@ timeout = 1
 bytesize = EIGHTBITS
 parity = PARITY_NONE
 
-try:
-    ports = serial.tools.list_ports.comports()
-    port = next((p.device for p in ports), None)
-    if port is None:
-        raise ValueError("No COM port found.")
+"""Подключение и выбор порта"""
 
-    ser = serial.Serial(port,
+try:
+    ports = list(serial.tools.list_ports.comports())
+    #port = next((p.device for p in ports), None)
+    target_manufacturer = 'wch.cn'
+    target_pid = '29987'
+    com_port = None
+    for port in ports:
+        if target_manufacturer in port.manufacturer:
+            com_port = port.device
+            ser = serial.Serial(com_port,
                         baudrate=baudrate,
                         timeout=1,
                         stopbits=stopbits,
                         parity=parity,
                         bytesize=bytesize
                         )
+        else:
+            raise ComException
 
 except ValueError as ve:
     print("Error:", str(ve))
-    logging.error('No serial port found.')
+    logging.error('Serial port error.')
 
 except serial.SerialException as se:
     print("Serial port error:", str(se))
@@ -49,18 +67,13 @@ except Exception as e:
 except KeyboardInterrupt:
     pass
 
-# finally:
-#     print('Нажмите s для начала работы')
-#     keyboard.wait('s')
-#     if keyboard.read_key() == 's':
-#         logging.info('Starting protocol.')
 
 """Чем оборудован насос?"""
 
 PUMP = 'SY-01B'     # модель насоса Runze Fluid
 HEAD = 'M12'        # головка в насосе
 VALVE = 12          # число клапанов в головке
-VOLUME = 125        # объём в мкл
+VOLUME = 125        # объём шприца в мкл
 SQUARE = 2.083      # площадь сечения шприца в мм^2
 
 """Важные константы"""
@@ -118,22 +131,9 @@ def check_state_pump(func):
                 logging.error(f"Error writing on {ser.port}.\nErr: {e}")
     return wrapper
 
-# def terminator(func):
-#     def wrapper(*args, **kwargs):
-#         if keyboard.read_key() == 't':
-#             ser.write(str.encode(stop, encoding = 'ascii'))
-#             logging.info('Stopping with /1TR command. It is recommended to do initialization.')
-#         return func(*args, **kwargs)
-#     return wrapper
-
 """Библиотека функций по управлению насосами Runze Fluid"""
 
 class mypump:
-
-    def __init__(self, volume1, Volume1, volume2):
-        self.volume1 = volume1
-        self.Volume1 = Volume1
-        self.volume2 = volume2
 
     """Опрос состояния выполнения команд в насосе: Free - свободен, Busy - занят"""
 
@@ -192,7 +192,6 @@ class mypump:
     """Инициализация"""
 
     @check_state_pump
-    # @terminator
     def init(self):
             init = str('/1ZR') + '\r\n'
             try:
@@ -206,8 +205,8 @@ class mypump:
     """Ввод объёма в мкл с заданной скоростью в мкл/мин из определённого клапана"""
 
     @check_state_pump
-    # @terminator
     def set_volume(self, volume1, speed: float, n1: int):
+        self.volume1 = volume1
         v1 = int(volume1 * k1)
         sp1 = int(speed * k2)
         command1 = f'/1I{n1}V{sp1}IA{v1}R' + '\r\n'
@@ -225,6 +224,7 @@ class mypump:
 
     @check_state_pump
     def add_volume(self, Volume1, speed: float, n2: int):
+        self.Volume1 = Volume1
         v2 = int(Volume1 * k1)
         sp2 = int(speed * k2)
         command2 = f'/1V{sp2}I{n2}P{v2}R' + '\r\n'
@@ -243,6 +243,7 @@ class mypump:
 
     @check_state_pump
     def output_volume(self, volume2, speed: float, n3: int):
+        self.volume2 = volume2
         x = self.volume1 - volume2
         v3 = int(x * k1)
         sp3 = int(speed * k2)
