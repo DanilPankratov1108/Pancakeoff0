@@ -2,13 +2,11 @@
 import sys
 import time
 from threading import Thread
-
 import serial
 from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 import serial.tools.list_ports
 import logging
 import keyboard as kb
-import threading
 
 """Логирование"""
 
@@ -116,17 +114,21 @@ stop = '/1TR' + '\r\n'  #для экстренной остановки
 """Прекращение работы при нажатии на клавишу t"""
 
 check = True
+terminate = False
 
 def stop_device():
-    global check
+    global terminate
     ser.write(str.encode(stop, encoding='ascii'))
     print('Остановка. Рекомендуется сделать реинициализацию')
     logging.info('Stopping with /1TR command. It is recommended to do initialization.')
-    check = False
+    terminate = True
 
 def check_stop():
     kb.wait('t')
     stop_device()
+
+# def checks():
+#     return check
 
 # """Время работы кода"""
 #
@@ -144,7 +146,6 @@ running = False
 
 def check_state_pump(func):
     def wrapper(*args, **kwargs):
-                # ser.write(str.encode(state, encoding='ascii'))
                 N = ser.read_until(expected=state_work)
                 stop_thread = threading.Thread(target=check_stop)
                 stop_thread.daemon = True
@@ -152,9 +153,12 @@ def check_state_pump(func):
                 # time_thread = threading.Thread(target=time_work)
                 # time_thread.daemon = True
                 # time_thread.start()
-                while N == state_work and check:
+                while N == state_work and not terminate and ser.is_open:
                     ser.write(str.encode(state, encoding='ascii'))
                     N = ser.read_until(expected=state_work)
+                    print(terminate)
+                if terminate:
+                    raise KeyboardInterrupt('Остановка. Нажата клавиша t')
                 return func(*args, **kwargs)
     return wrapper
 
