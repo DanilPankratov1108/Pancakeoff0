@@ -116,13 +116,13 @@ stop = '/1TR' + '\r'  #для экстренной остановки
 
 """Прекращение работы при нажатии на клавишу t"""
 
-# terminate = False
+terminate = False
 check = True
 
 def stop_device():
-    global check
+    global terminate
     ser.write(str.encode(stop, encoding='ascii'))
-    check = False
+    terminate = True
 
 def check_stop(key):
     try:
@@ -144,9 +144,11 @@ def check_state_pump(func):
                 N = ser.read_until(expected=state_work)
                 listener_thread = threading.Thread(target=listener, daemon = True)
                 listener_thread.start()
-                while N == state_work and check:
+                while N == state_work and not terminate:
                     ser.write(str.encode(state, encoding='ascii'))
                     N = ser.read_until(expected=state_work)
+                if terminate:
+                    raise KeyboardInterrupt('Остановка. Нажата клавиша t')
                 return func(*args, **kwargs)
             except serial.SerialException as e:
                 logging.error(f"Error writing on {ser.port}.\nErr: {e}")
