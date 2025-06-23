@@ -96,14 +96,9 @@ plunger_move = b'\xff/0k\x03\r\n'  # Движение поршня ограни�
 AD_failure = b'\xff/0n\x03\r\n'  # Неисправность аналого-цифрового преобразователя
 # command_overflow = b'\xff/0O\x03\r\n'   #Переполнена очередь команд
 
-"""Некоторые команды в ASCII"""
-
 state = '/1QR' + '\r'  # для проверки состояния
-stop = '/1TR' + '\r'  # для экстренной остановки
-report = '/1?R' + '\r'  # запрашивает текущий объём
 
 """Декоратор, который навешиваетя на некоторые функции в библиотеке. Он позволяет определять состояние выполнения функций насоса."""
-
 
 def check_state_pump(func):
     def wrapper(*args, **kwargs):
@@ -132,7 +127,7 @@ def check_state_pump(func):
 
 class mypump:
 
-    terminate = False
+    terminate = False   # Флаг остановки насоса
 
     """Опрос состояния выполнения команд в насосе: Free - свободен, Busy - занят"""
 
@@ -150,6 +145,7 @@ class mypump:
     """Функции остановки"""
 
     def stop_device(self):
+        stop = '/1TR' + '\r'  # для экстренной остановки
         global terminate
         ser.write(str.encode(stop, encoding='ascii'))
         terminate = True
@@ -170,6 +166,7 @@ class mypump:
     """Остановка с помощью консоли."""
 
     def stop():
+        stop = '/1TR' + '\r'  # для экстренной остановки
         ser.write(str.encode(stop, encoding='ascii'))
         logging.info('Terminating of work.')
         print('Прекращение работы')
@@ -210,8 +207,8 @@ class mypump:
 
     @check_state_pump
     def refill(self, Volume1, speed: float, n2: int):
-        v2 = int(Volume1 * k1)
-        sp2 = int(speed * k2)
+        v2 = int(Volume1 * self.k1)
+        sp2 = int(speed * self.k2)
         command2 = f'/1V{sp2}I{n2}P{v2}R' + '\r'
         ser.write(str.encode(command2, encoding='ascii'))
         I = ser.read(7)
@@ -232,8 +229,8 @@ class mypump:
 
     @check_state_pump
     def infuse(self, volume2, speed: float, n3: int):
-        v3 = int(volume2 * k1)
-        sp3 = int(speed * k2)
+        v3 = int(volume2 * self.k1)
+        sp3 = int(speed * self.k2)
         command3 = f'/1V{sp3}O{n3}D{v3}R' + '\r'
         ser.write(str.encode(command3, encoding='ascii'))
         I = ser.read(7)
@@ -254,6 +251,7 @@ class mypump:
 
     @check_state_pump
     def report_volume(self):
+        report = '/1?R' + '\r'
         ser.write(str.encode(report, encoding='ascii'))
         R = ser.read(12)
         start_index = R.index(b'`') + 1
@@ -261,7 +259,7 @@ class mypump:
         number_bytes = R[start_index:end_index]
         number_str = number_bytes.decode('utf-8')
         number = int(number_str)
-        final_volume = number / k1
+        final_volume = number / self.k1
         print(f"Текущий объём в шприце: {final_volume} мкл\n")
         logging.info(f'Report command was send. There is {final_volume} ul in the syringe.')
         ser.send_break(2)
