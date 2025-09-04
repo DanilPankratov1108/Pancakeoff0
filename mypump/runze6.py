@@ -62,32 +62,6 @@ except Exception as e:
 except KeyboardInterrupt:
     pass
 
-"""Чем оборудован насос?"""
-
-PUMP = 'SY-01B'     # модель насоса Runze Fluid
-HEAD = 'M12'        # головка в насосе
-VALVE = 12          # число клапанов в головке
-
-"""Важные константы"""
-
-"""1)В единицах кода(в шагах)"""
-
-NOM_STEP = 6000     # номинальный ход
-MAX_STEP = 12000    # максимальный ход
-MIN_STEP = 1        # минимальный ход
-MAX_VEL = 6000      # максимальная скорость
-MIN_VEL = 1         # минимальная скорость
-DEFAULT_VEL = 4000  # скорость по умолчанию
-
-"""2)В абсолютных единицах(мкл и мкл/мин)"""
-
-REAL_NOM_STEP = 62.5          # номинальный ход
-REAL_MAX_STEP = 125         # максимальный ход
-REAL_MIN_STEP = 1/96       # минимальный ход
-REAL_MAX_VEL = 3750          # максимальная скорость
-REAL_MIN_VEL = 1.6         # минимальная скорость
-REAL_DEFAULT_VEL = 2500      # скорость по умолчанию
-
 """Битовые строки, которые идут от насоса"""
 
 state_work = b'\xff/0@\x03\r\n'     #В процессе работы
@@ -141,6 +115,41 @@ def check_state_pump(func):
 
 class mypump:
 
+    """Чем оборудован насос?"""
+
+    PUMP = 'SY-01B'  # модель насоса Runze Fluid
+    HEAD = 'M12'  # головка в насосе
+    VALVE = 12  # число клапанов в головке
+
+    """Важные константы"""
+
+    """1)В единицах кода(в шагах)"""
+
+    NOM_STEP = 6000  # номинальный ход
+    MAX_STEP = 12000  # максимальный ход
+    MIN_STEP = 1  # минимальный ход
+    MAX_VEL = 6000  # максимальная скорость
+    MIN_VEL = 1  # минимальная скорость
+    DEFAULT_VEL = 4000  # скорость по умолчанию
+
+    """2)В абсолютных единицах(мкл и мкл/мин) для шприца 125 мкл"""
+
+    REAL_NOM_STEP_1 = 62.5  # номинальный ход
+    REAL_MAX_STEP_1 = 125  # максимальный ход
+    REAL_MIN_STEP_1 = 1 / 96  # минимальный ход
+    REAL_MAX_VEL_1 = 3750  # максимальная скорость
+    REAL_MIN_VEL_1 = 1.6  # минимальная скорость
+    REAL_DEFAULT_VEL_1 = 2500  # скорость по умолчанию
+
+    """3)В абсолютных единицах(мкл и мкл/мин) для шприца 500 мкл"""
+
+    REAL_NOM_STEP_2 = 250  # номинальный ход
+    REAL_MAX_STEP_2 = 500  # максимальный ход
+    REAL_MIN_STEP_2 = 1 / 24  # минимальный ход
+    REAL_MAX_VEL_2 = 3750  # максимальная скорость
+    REAL_MIN_VEL_2 = 1.6  # минимальная скорость
+    REAL_DEFAULT_VEL_2 = 2500  # скорость по умолчанию
+
     terminate = False   #Флаг остановки насоса
 
     """Опрос состояния выполнения команд в насосе: Free - свободен, Busy - занят"""
@@ -166,24 +175,6 @@ class mypump:
             logging.info('Stopping with /1TR command. It is recommended to do initialization.')
             terminate = True
 
-    # def minitimer(self, func, *args, duration):
-    #     self.running = True
-    #     d = duration*3600
-    #     end_time = time.time() + d
-    #     def run():
-    #         while self.running and time.time() < end_time:
-    #             func(*args)
-    #             time.sleep(1)
-    #     command_thread = threading.Thread(target = run, daemon = True)
-    #     command_thread.start()
-    #     time_thread = threading.Timer(duration, self.stop)
-    #     time_thread.start()
-    #
-    # def timer(self, commands, duration):
-    #     for command in commands:
-    #         func = command
-    #         self.minitimer(func, duration = duration)
-
     """Это остановка командой stop"""
 
     def stop(self):
@@ -203,7 +194,7 @@ class mypump:
     """Установка максимального объёма"""
     def set_volume(self, V):
         if V == 125 or V == 500:
-            k1 = MAX_STEP / V  # Перевод объёма из мкл в шаги
+            k1 = mypump.MAX_STEP / V  # Перевод объёма из мкл в шаги
             k2 = k1 / 60    # Перевод скорости из мкл/мин в шаги/сек
             self.k1 = k1
             self.k2 = k2
