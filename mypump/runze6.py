@@ -165,7 +165,20 @@ class mypump:
                 else:
                     print('Free')
 
-    """Остановка клавишей t"""
+    """Пауза для устройства"""
+    def pause_transfer(self):
+        self.paused = True
+        print("⏸ Передача остановлена")
+
+    def resume_transfer(self):
+        self.paused = False
+        print("▶️ Передача возобновлена")
+
+    def write(self, cmd):
+        if not self.paused:
+            self.ser.write(cmd.encode())
+          
+    """Остановка"""
 
     def stop_device(self):
             kb.wait('t')
@@ -292,3 +305,4 @@ class mypump:
 
 if __name__ == "__main__":
     mypump = mypump()
+
