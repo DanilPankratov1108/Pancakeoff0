@@ -154,7 +154,20 @@ class mypump:
                 print('Busy')
             else:
                 print('Free')
+              
+    """Пауза для устройства"""
+    def pause_transfer(self):
+        self.paused = True
+        print("⏸ Передача остановлена")
 
+    def resume_transfer(self):
+        self.paused = False
+        print("▶️ Передача возобновлена")
+
+    def write(self, cmd):
+        if not self.paused:
+            self.ser.write(cmd.encode())
+          
     """Остановка с помощью консоли."""
 
     def stop_device():
