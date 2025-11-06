@@ -4,7 +4,6 @@ import serial
 from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 import serial.tools.list_ports
 import logging
-from pynput import keyboard
 import threading
 import multiprocessing
 import curses
@@ -84,8 +83,6 @@ def check_state_pump(func):
     def wrapper(*args, **kwargs):
         ser.write(str.encode(state, encoding='ascii'))
         N = ser.read(7)
-        listener_thread = threading.Thread(target=args[0].listener, daemon=True)
-        listener_thread.start()
         while N == state_work and not mypump.terminate:
             ser.write(str.encode(state, encoding='ascii'))
             N = ser.read_until(expected=state_work)
@@ -158,30 +155,9 @@ class mypump:
             else:
                 print('Free')
 
-    """Функции остановки"""
-
-    def stop_device(self):
-        stop = '/1TR' + '\r'  # для экстренной остановки
-        global terminate
-        ser.write(str.encode(stop, encoding='ascii'))
-        terminate = True
-
-    def check_stop(self, key):
-        try:
-            if key.char == 't':
-                self.stop_device()
-                self.report_volume()
-                return False
-        except AttributeError:
-            pass
-
-    def listener(self):
-        with keyboard.Listener(on_press=lambda key: self.check_stop(key)) as listener:
-            listener.join()
-
     """Остановка с помощью консоли."""
 
-    def stop():
+    def stop_device():
         stop = '/1TR' + '\r'  # для экстренной остановки
         ser.write(str.encode(stop, encoding='ascii'))
         logging.info('Terminating of work.')
