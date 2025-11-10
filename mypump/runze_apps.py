@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
+import tkinter.font as tkFont
 from PIL import Image, ImageTk
 import threading, time, os, json
-from runze_linux import mypump
+from runze6 import mypump
 
 pump = mypump()
 
@@ -14,6 +15,7 @@ class App(tk.Tk):
         self.title("Raspberry Pi GUI - Recipes")
         self.geometry("800x480")
         self.resizable(False, False)
+        # self.tk.call('tk', 'scaling', 0.9)
 
         # Data
         # recipe_stages: list of stages, each stage is {"name": str, "blocks": [block dicts]}
@@ -26,7 +28,11 @@ class App(tk.Tk):
         # Settings
         self.settings_file = "settings.json"
         self.theme = "Light"
-        self.font_family = "Arial"
+        # default_font = tkFont.nametofont("Verdana")
+        # default_font.configure(family=self.font_family)
+        # text_font = tkFont.nametofont("Verdana")
+        # text_font.configure(family=self.font_family)
+        self.font_family = "Times New Roman"
         self.bg_color = "white"
         self.load_settings()
         self.apply_theme()
@@ -42,15 +48,17 @@ class App(tk.Tk):
         self.main_frame = tk.Frame(self, bg=self.bg_color)
         self.main_frame.pack(fill="both", expand=True)
 
-        self.bottom_frame = tk.Frame(self, bg=self.bg_color, height=80, relief="ridge", bd=1)
+        self.bottom_frame = tk.Frame(self, bg=self.bg_color, height=80, relief="solid", bd=3)
         self.bottom_frame.pack(fill="x", side="bottom")
 
         # Default bottom nav
         self.default_nav_buttons = [
             ("🏠 Главный экран", self.show_main),
             ("📘 Задать рецепт", self.show_recipe_stages),
-            ("📂 Сохранённые рецепты", self.show_saved_recipes),
-            ("✋ Ручное управление", self.show_manual_control_page),
+            ("📂 Сохранённые \n"
+             "рецепты", self.show_saved_recipes),
+            ("✋ Ручное \n"
+             "управление", self.show_manual_control_page),
             ("⚙️ Настройки", lambda: self.show_page("settings")),
         ]
         self.render_bottom_nav(self.default_nav_buttons)
@@ -89,7 +97,7 @@ class App(tk.Tk):
         self.clear_bottom()
         for text, cmd in buttons:
             b = tk.Button(self.bottom_frame, text=text, font=(self.font_family, 12),
-                          command=cmd, width=18, height=2, bg="white", relief="raised")
+                          command=cmd, width=15, height=3, bg="white", relief="solid", bd=2)
             b.pack(side="left", expand=True, fill="both", padx=2, pady=6)
 
     # ---------------------- main screens ----------------------
@@ -116,33 +124,33 @@ class App(tk.Tk):
         # ⬅ Главный экран | ⚙️ Инициализация | 💾 Сохранить рецепт | ⏹ Остановить | ⏸ Пауза | ▶️ Продолжить
         self.clear_bottom()
         # Left: main navigation
-        b_home = tk.Button(self.bottom_frame, text="⬅ Главный экран", font=(self.font_family, 12),
-                           command=self.show_main, width=18, height=2, bg="white")
+        b_home = tk.Button(self.bottom_frame, text="🏠 Главный экран", font=(self.font_family, 12),
+                           command=self.show_main, width=12, height=3, bg="white")
         b_home.pack(side="left", padx=2, pady=6, expand=True, fill="both")
 
         b_init = tk.Button(self.bottom_frame, text="⚙️ Инициализация", font=(self.font_family, 12),
-                           command=self.init_pump, width=18, height=2, bg="white")
+                           command=self.init_pump, width=12, height=3, bg="white")
         b_init.pack(side="left", padx=2, pady=6, expand=True, fill="both")
 
         b_start_recipe = tk.Button(self.bottom_frame, text="▶️ Запуск", font=(self.font_family, 12),
-                           command=self.start_recipe, width=18, height=2, bg="white")
+                           command=self.start_recipe, width=12, height=3, bg="white")
         b_start_recipe.pack(side="left", padx=2, pady=6, expand=True, fill="both")
 
         b_save_recipe = tk.Button(self.bottom_frame, text="💾 Сохранить рецепт", font=(self.font_family, 12),
-                                  command=self.save_recipe, width=18, height=2, bg="white")
+                                  command=self.save_recipe, width=12, height=3, bg="white")
         b_save_recipe.pack(side="left", padx=2, pady=6, expand=True, fill="both")
 
         b_stop = tk.Button(self.bottom_frame, text="⏹ Остановить", font=(self.font_family, 12),
-                           command=self.stop_pump, width=18, height=2, bg="white")
+                           command=self.stop_pump, width=12, height=3, bg="white")
         b_stop.pack(side="left", padx=2, pady=6, expand=True, fill="both")
 
         # Standard style for pause/resume to match other buttons (light)
         b_pause = tk.Button(self.bottom_frame, text="⏸ Пауза", font=(self.font_family, 12),
-                            command=getattr(pump, "pause_transfer", lambda: None), width=18, height=2, bg="white")
+                            command=getattr(pump, "pause_transfer", lambda: None), width=12, height=3, bg="white")
         b_pause.pack(side="left", padx=2, pady=6, expand=True, fill="both")
 
         b_resume = tk.Button(self.bottom_frame, text="▶️ Продолжить", font=(self.font_family, 12),
-                             command=getattr(pump, "resume_transfer", lambda: None), width=18, height=2, bg="white")
+                             command=getattr(pump, "resume_transfer", lambda: None), width=12, height=3, bg="white")
         b_resume.pack(side="left", padx=2, pady=6, expand=True, fill="both")
 
         # Header
@@ -170,7 +178,7 @@ class App(tk.Tk):
         for idx, stage in enumerate(self.recipe_stages):
             col = idx // per_col
             # block style: larger, bold, centered
-            f = tk.Frame(col_frames[col], bg="white", relief="raised", bd=1, width=220, height=50)
+            f = tk.Frame(col_frames[col], bg="white", relief="flat", bd=2, width=100, height=30)
             f.pack_propagate(False)
             f.pack(pady=4, anchor="n")
             lbl = tk.Label(f, text=stage.get("name", f"Этап {idx+1}"), font=(self.font_family, 11, "bold"),
@@ -184,14 +192,35 @@ class App(tk.Tk):
         btns_frame = tk.Frame(self.main_frame, bg=self.bg_color)
         btns_frame.pack(pady=8)
         tk.Button(btns_frame, text="➕ Добавить этап", font=(self.font_family, 13), bg="#c2f0c2",
-                  width=20, height=2, command=self.add_stage).pack(side="left", padx=8)
+                  width=14, height=1, command=self.add_stage).pack(side="left", padx=8)
         tk.Button(btns_frame, text="➖ Убрать этап", font=(self.font_family, 13), bg="#f5b7b1",
-                  width=20, height=2, command=self.remove_stage).pack(side="left", padx=8)
+                  width=14, height=1, command=self.remove_stage).pack(side="left", padx=8)
+
+        if not hasattr(self, "_recipe_timer_label") or not self._recipe_timer_label.winfo_exists():
+            self._recipe_timer_label = tk.Label(
+                self.main_frame,
+                text="⏱ Время выполнения: 00:00:00",
+                font=(self.font_family, 10, "bold"),
+                bg=self.bg_color,
+                fg="#333"
+            )
+            self._recipe_timer_label.pack(pady=4)
+
+        def _update_local_timer():
+            if getattr(self, "_update_timer_running", False):
+                elapsed = int(time.time() - getattr(self, "start_time", time.time()))
+                h, m, s = elapsed // 3600, (elapsed % 3600) // 60, elapsed % 60
+                self._recipe_timer_label.config(text=f"⏱ Время выполнения: {h:02}:{m:02}:{s:02}")
+                self.after(1000, _update_local_timer)
+            else:
+                self._recipe_timer_label.config(text="⏱ Время выполнения: 00:00:00")
+
+        _update_local_timer()
 
         # cycles area
         cycle_frame = tk.Frame(self.main_frame, bg=self.bg_color)
         cycle_frame.pack(pady=6, fill="x")
-        tk.Label(cycle_frame, text="Циклы выполнения (вариант A):", font=(self.font_family, 12), bg=self.bg_color).pack(side="left", padx=6)
+        tk.Label(cycle_frame, text="Циклы выполнения:", font=(self.font_family, 12), bg=self.bg_color).pack(side="left", padx=6)
         tk.Button(cycle_frame, text="Добавить цикл", font=(self.font_family, 12), bg="#d6eaf8", command=self.add_cycle_dialog).pack(side="left", padx=6)
         tk.Button(cycle_frame, text="Очистить циклы", font=(self.font_family, 12), bg="#f5b7b1", command=self.clear_cycles).pack(side="left", padx=6)
         if self.cycles:
@@ -203,13 +232,13 @@ class App(tk.Tk):
         """Добавляет этап через кастомный диалог с встроенной экранной клавиатурой (QWERTY)."""
         dlg = tk.Toplevel(self)
         dlg.title("Новый этап")
-        dlg.geometry("700x300")
+        dlg.geometry("700x400")
         dlg.configure(bg=self.bg_color)
         dlg.transient(self)
         dlg.grab_set()
 
         tk.Label(dlg, text="Введите название этапа:", font=(self.font_family, 12), bg=self.bg_color).pack(pady=8)
-        name_entry = tk.Entry(dlg, font=(self.font_family, 14), width=28)
+        name_entry = tk.Entry(dlg, font=(self.font_family, 14), width=20)
         name_entry.pack(pady=6)
         name_entry.focus_set()
 
@@ -238,7 +267,7 @@ class App(tk.Tk):
             rowf = tk.Frame(kb_frame, bg=self.bg_color)
             rowf.pack(pady=2)
             for ch in row:
-                btn = tk.Button(rowf, text=ch, width=4, height=2, font=(self.font_family, 11),
+                btn = tk.Button(rowf, text=ch, width=4, height=2, font=(self.font_family, 9),
                                 command=lambda c=ch: insert_char(c))
                 btn.pack(side="left", padx=2)
             # add backspace on last row
@@ -676,7 +705,12 @@ class App(tk.Tk):
                 self._execute_stage_once(i)
                 time.sleep(0.2)
             self.update_status("✅ Выполнено!")
+            self._update_timer_running = False
 
+        self.start_time = time.time()
+        self._update_timer_running = True
+        self._update_recipe_timer_live()
+        threading.Thread(target=self._update_recipe_timer_live, daemon=True).start()
         threading.Thread(target=run_seq, daemon=True).start()
 
     def _execute_stage_once(self, stage_idx):
@@ -710,13 +744,14 @@ class App(tk.Tk):
     # ---------------------- manual control ----------------------
     def show_manual_control_page(self):
         self.clear_main()
+        self.render_bottom_nav(self.default_nav_buttons)
         tk.Label(
             self.main_frame, text="✋ Ручное управление",
-            font=("Arial", 22, "bold"), bg="white"
-        ).pack(pady=10)
+            font=("Arial", 18, "bold"), bg="white"
+        ).pack(pady=2)
 
         form = tk.Frame(self.main_frame, bg="white")
-        form.pack(pady=10)
+        form.pack(pady=2)
 
         labels = {
             "syringe": "Объём шприца (мкл):",
@@ -731,79 +766,76 @@ class App(tk.Tk):
         self.manual_fields = {}
 
         for key, text in labels.items():
-            tk.Label(form, text=text, bg="white", font=("Arial", 13)).pack(pady=3)
+            tk.Label(form, text=text, bg="white", font=("Arial", 11)).pack(pady=1)
             if key == "direction":
                 entry = ttk.Combobox(form, textvariable=self.manual_direction,
-                                     values=["Вперёд", "Назад"], font=("Arial", 13), width=20)
+                                     values=["Вперёд", "Назад"], font=("Arial", 11), width=12)
             elif key == "syringe":
                 entry = ttk.Combobox(form, textvariable=self.manual_syringe,
-                                     values=[125, 500], font=("Arial", 13), width=20)
+                                     values=[125, 500], font=("Arial", 11), width=12)
             else:
-                entry = tk.Entry(form, font=("Arial", 13), width=22)
-            entry.pack(pady=3)
+                entry = tk.Entry(form, font=("Arial", 11), width=12)
+            entry.pack(pady=1)
             self.manual_fields[key] = entry
 
         button_frame = tk.Frame(self.main_frame, bg="white")
-        button_frame.pack(pady=15)
-        pause_frame = tk.Frame(self.main_frame, bg="white")
-        pause_frame.pack(pady=15)
+        button_frame.pack(pady=6)
 
-        tk.Button(pause_frame, text="⏸ Пауза", font=(self.font_family, 13),
-                  bg="#f9e79f", width=14, command=pump.pause_transfer).pack(side="left", padx=10)
-        tk.Button(pause_frame, text="▶️ Продолжить", font=(self.font_family, 13),
-                  bg="#aed6f1", width=14, command=pump.resume_transfer).pack(side="left", padx=10)
-        tk.Button(button_frame, text="⚙️ Инициализация", font=("Arial", 13),
-                  width=14, bg="#e0e0e0", command=self.init_pump).pack(side="left", padx=10)
-        tk.Button(button_frame, text="▶️ Запуск", font=("Arial", 13),
-                  width=14, bg="#c8e6c9", command=self.manual_start).pack(side="left", padx=10)
-        tk.Button(button_frame, text="⏹ Остановка", font=("Arial", 13),
-                  width=14, bg="#ffcdd2", command=self.manual_stop).pack(side="left", padx=10)
+        tk.Button(button_frame, text="⚙️ Инициализация", font=("Arial", 11),
+                  width=12, bg="#e0e0e0", command=self.init_pump).pack(side="left", padx=6)
+        tk.Button(button_frame, text="▶️ Запуск", font=("Arial", 11),
+                  width=12, bg="#c8e6c9", command=self.manual_start).pack(side="left", padx=6)
+        tk.Button(button_frame, text="⏹ Остановка", font=("Arial", 11),
+                  width=12, bg="#ffcdd2", command=self.manual_stop).pack(side="left", padx=6)
 
-        self.manual_status = tk.Label(self.main_frame, text="", font=(self.font_family, 12), bg=self.bg_color)
-        self.manual_status.pack(pady=6)
+        self.manual_status = tk.Label(self.main_frame, text="", font=(self.font_family, 11), bg=self.bg_color)
+        self.manual_status.pack(pady=4)
 
     def manual_start(self):
-        try:
-            direction = self.manual_direction.get()
-            syringe = int(self.manual_syringe.get())
-            volume = float(self.manual_fields["volume"].get())
-            flow = float(self.manual_fields["flow"].get())
-            valve = int(self.manual_fields["valve"].get())
+        def run_manual():
+            try:
+                direction = self.manual_direction.get()
+                syringe = int(self.manual_syringe.get())
+                volume = float(self.manual_fields["volume"].get())
+                flow = float(self.manual_fields["flow"].get())
+                valve = int(self.manual_fields["valve"].get())
 
-            pump.set_volume(syringe)
-            if direction == "Вперёд":
-                pump.refill(volume, flow, valve)
-            else:
-                pump.infuse(volume, flow, valve)
+                pump.set_volume(syringe)
+                if direction == "Вперёд":
+                    pump.refill(volume, flow, valve)
+                else:
+                    pump.infuse(volume, flow, valve)
 
-            vol = pump.report_volume()
-            self.update_status(f"✅ Операция выполнена. 💧 Текущий объём: {vol} мкл")
+                vol = pump.report_volume()
+                self.update_status(f"✅ Операция выполнена. 💧 Текущий объём: {vol} мкл")
+            except Exception as e:
+                self.update_status(f"❌ Ошибка: {e}")
 
-        except Exception as e:
-            self.update_status(f"❌ Ошибка: {e}")
+        threading.Thread(target=run_manual, daemon=True).start()
 
     def manual_stop(self):
         try:
             pump.stop_device()
+            self._update_timer_running = False
             self.update_status("⏹ Насос остановлен.")
         except Exception as e:
             self.update_status(f"❌ Ошибка остановки: {e}")
 
-    # def _manual_start_from_fields(self, e_volume, e_flow, e_valve):
-    #     try:
-    #         volume = float(e_volume.get())
-    #         flow = float(e_flow.get())
-    #         valve = int(e_valve.get())
-    #         syringe = int(self.manual_syringe.get())
-    #         pump.set_volume(syringe)
-    #         if self.manual_direction.get() == "Вперёд":
-    #             pump.infuse(volume, flow, valve)
-    #         else:
-    #             pump.refill(volume, flow, valve)
-    #         vol = pump.report_volume()
-    #         self.update_status(f"✅ Операция выполнена. 💧 Текущий объём: {vol} мкл")
-    #     except Exception as e:
-    #         self.update_status(f"❌ Ошибка: {e}")
+    def _manual_start_from_fields(self, e_volume, e_flow, e_valve):
+        try:
+            volume = float(e_volume.get())
+            flow = float(e_flow.get())
+            valve = int(e_valve.get())
+            syringe = int(self.manual_syringe.get())
+            pump.set_volume(syringe)
+            if self.manual_direction.get() == "Вперёд":
+                pump.refill(volume, flow, valve)
+            else:
+                pump.infuse(volume, flow, valve)
+            vol = pump.report_volume()
+            self.update_status(f"✅ Операция выполнена. 💧 Текущий объём: {vol} мкл")
+        except Exception as e:
+            self.update_status(f"❌ Ошибка: {e}")
 
     # ---------------------- keyboard ----------------------
     def show_keyboard(self, entry_widget, numeric=False):
@@ -864,7 +896,6 @@ class App(tk.Tk):
         cf.pack(pady=8)
         tk.Button(cf, text="Очистить", bg="#f5b7b1", font=(self.font_family, 12), command=clear, width=12).pack(side="left", padx=8)
         tk.Button(cf, text="OK", bg="#c2f0c2", font=(self.font_family, 12), command=close, width=12).pack(side="left", padx=8)
-        # disable close via X (user must press OK)
         kb.protocol("WM_DELETE_WINDOW", lambda: None)
 
     def init_pump(self):
@@ -960,6 +991,20 @@ class App(tk.Tk):
             self.destroy()
         except:
             pass
+
+    def _update_recipe_timer_live(self):
+        """Живое обновление таймера выполнения рецепта (видимый снизу под кнопками)."""
+        if not hasattr(self, "_recipe_timer_label") or not self._recipe_timer_label.winfo_exists():
+            return
+
+        if getattr(self, "_update_timer_running", False):
+            elapsed = int(time.time() - self.start_time)
+            h, m, s = elapsed // 3600, (elapsed % 3600) // 60, elapsed % 60
+            self._recipe_timer_label.config(text=f"⏱ Время выполнения: {h:02}:{m:02}:{s:02}")
+            self.after(1000, self._update_recipe_timer_live)
+        else:
+            self._recipe_timer_label.config(text="⏱ Время выполнения: 00:00:00")
+
 
 # ---------------------- run ----------------------
 if __name__ == "__main__":
