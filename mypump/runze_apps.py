@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox, simpledialog
 import tkinter.font as tkFont
 from PIL import Image, ImageTk
 import threading, time, os, json
-from runze6 import mypump
+from runze_linux import mypump
 
 pump = mypump()
 
@@ -1010,3 +1010,4 @@ class App(tk.Tk):
 if __name__ == "__main__":
     app = App()
     app.mainloop()
+
