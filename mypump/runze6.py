@@ -90,8 +90,8 @@ report = '/1?R' + '\r\n'    #запрашивает текущий объём
 
 def check_state_pump(func):
     def wrapper(*args, **kwargs):
-                stop_thread = threading.Thread(target=args[0].stop_device, daemon = True)
-                stop_thread.start()
+                # stop_thread = threading.Thread(target=args[0].stop_device, daemon = True)
+                # stop_thread.start()
                 ser.write(str.encode(state, encoding='ascii'))
                 N = ser.read(7)
                 while N == state_work and not mypump.terminate:
@@ -177,21 +177,15 @@ class mypump:
     def write(self, cmd):
         if not self.paused:
             self.ser.write(cmd.encode())
-          
-    """Остановка"""
+
+    """Остановка устройства"""
 
     def stop_device(self):
-            kb.wait('t')
-            global terminate
+        try:
             ser.write(str.encode(stop, encoding='ascii'))
-            print('Остановка. Рекомендуется сделать реинициализацию')
-            logging.info('Stopping with /1TR command. It is recommended to do initialization.')
-            terminate = True
-
-    """Это остановка командой stop"""
-
-    def stop(self):
-        ser.write(str.encode(stop, encoding='ascii'))
+        except Exception as e:
+            logging.error(f"Stop command send error: {e}")
+        self.terminate = True
         self.running = False
         print('Остановка. Рекомендуется сделать реинициализацию')
         logging.info('Stopping with /1TR command. It is recommended to do initialization.')
@@ -305,4 +299,3 @@ class mypump:
 
 if __name__ == "__main__":
     mypump = mypump()
-
